@@ -86,6 +86,210 @@ class Board{
         uint64_t emptySquares(){
             return ~occupiedSquares();
         }
+        uint64_t clearRank(int which_one){
+            return ~maskRank(which_one);
+        }
+        uint64_t maskRank(int which_one){
+            uint64_t aux, result;
+            result = 0;
+            for (int i=0; i<64; i++){
+                if (i/8 == which_one){
+                    aux = 1;
+                    aux = aux<<i;
+                    result = result | aux;
+                }
+            }
+            return result;
+        }
+        uint64_t maskFile(int which_one){
+            uint64_t aux, result;
+            result = 0;
+            for (int i=0; i<64; i++){
+                if ( i%8 == (which_one-1) ){
+                    aux = 1;
+                    aux = aux<<i;
+                    result = result | aux;
+                }
+            }
+            return result;
+        }
+        uint64_t clearFile(int which_one){
+            return ~maskFile(which_one);
+        }
+        uint64_t whiteKingValid(uint64_t king_position){
+            uint64_t pseudo_valid, north, south, east, west, northeast, northwest, southeast, southwest;
+            // check if in an edge rank
+            east = king_position<<1;
+            west = king_position>>1;
+            north = king_position<<8;
+            south = king_position>>8;
+            northeast = king_position<<9;
+            northwest = king_position<<7;
+            southeast = king_position>>7;
+            southwest = king_position>>9;
+            // check if in an edge file
+            uint64_t a_file = maskFile(1);
+            if (a_file & king_position != 0){
+                pseudo_valid = south | north | northeast | southeast | east;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            uint64_t h_file = maskFile(8);
+            if (h_file & king_position != 0){
+                pseudo_valid = south | north | west | northwest | southwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            else{
+                pseudo_valid = east | west | north | south | northeast | northwest | southeast | southwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+        }
+        uint64_t blackKingValid(uint64_t king_position){
+            uint64_t pseudo_valid, north, south, east, west, northeast, northwest, southeast, southwest;
+            // check if in an edge rank
+            east = king_position<<1;
+            west = king_position>>1;
+            north = king_position>>8;
+            south = king_position<<8;
+            northeast = king_position>>9;
+            northwest = king_position>>7;
+            southeast = king_position<<7;
+            southwest = king_position<<9;
+            // check if in an edge file
+            uint64_t a_file = maskFile(1);
+            if (a_file & king_position != 0){
+                pseudo_valid = south | north | northeast | southeast | east;
+                pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+                return pseudo_valid;
+            }
+            uint64_t h_file = maskFile(8);
+            if (h_file & king_position != 0){
+                pseudo_valid = south | north | west | northwest | southwest;
+                pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+                return pseudo_valid;
+            }
+            else{
+                pseudo_valid = east | west | north | south | northeast | northwest | southeast | southwest;
+                pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+                return pseudo_valid;
+            }
+        }
+        uint64_t whitePawnValid(uint64_t pawn_postion, bool enPassant){
+            // we should implement enpassant later on
+            uint64_t pseudo_valid, pseudo_attacks,forward, forward2, west_attack, east_attack;
+            forward = pawn_postion<<8;
+            forward2 = pawn_postion<<16;
+            west_attack = pawn_postion<<7;
+            east_attack = pawn_postion<<9;
+            // pawn is in 2nd rank
+            if (pawn_postion>>16 == 0){
+                pseudo_valid = forward | forward2;
+                pseudo_attacks = west_attack | east_attack;
+                pseudo_valid = pseudo_valid & black_occupiedSquares();
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                pseudo_valid = pseudo_valid | pseudo_attacks;
+                return pseudo_valid;
+            }
+            else{
+                pseudo_valid = forward;
+                pseudo_attacks = west_attack | east_attack;
+                pseudo_valid = pseudo_valid & black_occupiedSquares();
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                pseudo_valid = pseudo_valid | pseudo_attacks;
+                return pseudo_valid;
+            }
+        }
+        uint64_t blackPawnValid(uint64_t pawn_postion, bool enPassant){
+            // we should implement enpassant later on
+            uint64_t pseudo_valid,pseudo_attacks, forward, forward2, west_attack, east_attack;
+            forward = pawn_postion>>8;
+            forward2 = pawn_postion>>16;
+            // remember that the board is upside down to black
+            west_attack = pawn_postion>>9;
+            east_attack = pawn_postion>>7;
+            // pawn is in 2nd rank
+            if (pawn_postion<<16 == 0){
+                pseudo_valid = forward | forward2;
+                pseudo_attacks = west_attack | east_attack;
+                pseudo_attacks = pseudo_attacks & white_occupiedSquares();
+                pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+                pseudo_valid = pseudo_valid | pseudo_attacks;
+                return pseudo_valid;
+            }
+            else{
+                pseudo_valid = forward;
+                pseudo_attacks = west_attack | east_attack;
+                pseudo_attacks = pseudo_attacks & white_occupiedSquares();
+                pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+                pseudo_valid = pseudo_valid | pseudo_attacks;
+                return pseudo_valid;
+            }
+        }
+        uint64_t whiteKnightValid(uint64_t knight_position){
+            uint64_t pseudo_valid, upwest, upeast, midupwest, midupeast, midbotwest, midboteast, botwest, boteast;
+            upwest = knight_position<<15;
+            upeast = knight_position<<17;
+            midupwest = knight_position<<6;
+            midupeast = knight_position<<10;
+            midbotwest = knight_position>>10;
+            midboteast = knight_position>>6;
+            botwest = knight_position>>17;
+            boteast = knight_position>>15;
+            if ( knight_position & maskFile(1) != 0){
+                pseudo_valid = upeast | midupeast | midboteast | boteast;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            if ( knight_position & maskFile(2) != 0){
+                pseudo_valid = upeast | upwest | midupeast | midboteast | boteast | botwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            if (knight_position & maskFile(8) != 0){
+                pseudo_valid = upwest | midupwest | midbotwest | botwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            if (knight_position & maskFile(7) != 0){
+                pseudo_valid = upeast | upwest | midupwest | midbotwest | boteast | botwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares();
+                return pseudo_valid;
+            }
+            else{
+                pseudo_valid = upeast | upwest | midupeast | midupwest | midboteast | midbotwest | boteast | botwest;
+                pseudo_valid = pseudo_valid & ~white_occupiedSquares(); 
+                return pseudo_valid;
+            }
+        }
+        uint64_t blackKnightValid(uint64_t knight_position){
+            uint64_t pseudo_valid, upwest, upeast, midupwest, midupeast, midbotwest, midboteast, botwest, boteast;
+            upwest = knight_position>>15;
+            upeast = knight_position>>17;
+            midupwest = knight_position>>6;
+            midupeast = knight_position>>10;
+            midbotwest = knight_position<<10;
+            midboteast = knight_position>>6;
+            botwest = knight_position<<17;
+            boteast = knight_position<<15; 
+            pseudo_valid = upeast | upwest | midupeast | midupwest | midboteast | midbotwest | boteast | botwest;
+            pseudo_valid = pseudo_valid & ~black_occupiedSquares();
+            return pseudo_valid;
+        }
+        void pretty_print(uint64_t piece_positions){
+            // lembrar do method .to_string() do bitset
+            // p implementar dps
+            string helper = bitset<64>(piece_positions).to_string();
+            string aux;
+            for (int i=0; i<helper.length(); i= i + 8){
+                aux = helper.substr(i, 8);
+                cout << aux << endl;
+            }
+        }
+        uint64_t teste(){
+            return black_occupiedSquares();
+        }
         int movePawn(Move move){
             // the sole purpose of this function is to move forward a pawn
             // there will be a separate one to deal with captures
@@ -144,19 +348,6 @@ class Board{
                 // note: implement promotion of pawns
                 return 1;
             }
-        }
-        void pretty_print(uint64_t piece_positions){
-            // lembrar do method .to_string() do bitset
-            // p implementar dps
-            string helper = bitset<64>(piece_positions).to_string();
-            string aux;
-            for (int i=0; i<helper.length(); i= i + 8){
-                aux = helper.substr(i, 8);
-                cout << aux << endl;
-            }
-        }
-        uint64_t teste(){
-            return black_occupiedSquares();
         }
 };
 int main(){
