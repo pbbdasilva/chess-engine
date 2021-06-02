@@ -111,7 +111,39 @@ public:
         return false;
     }
 
-    pieceType whichType() { return KNIGHT; }
+    pieceType whichType() { return KING; }
+};
+
+class Rook : public Piece {
+    int currX, currY;
+public:
+    Rook(Player who, int i, int j) : Piece(who) {
+        currX = i;
+        currY = j;
+    }
+
+    bool validMove(int i, int j) {
+        if(i != currX && j != currY) return false;
+        else return true;
+    }
+
+    pieceType whichType() { return ROOK; }
+};
+
+class Bishop : public Piece {
+    int currX, currY;
+public:
+    Bishop(Player who, int i, int j) : Piece(who) {
+        currX = i;
+        currY = j;
+    }
+
+    bool validMove(int i, int j) {
+        if(i + j != currX + currY) return false;
+        else return true;
+    }
+
+    pieceType whichType() { return BISHOP; }
 };
 
 class Board {
