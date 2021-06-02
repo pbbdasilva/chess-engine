@@ -10,7 +10,7 @@ enum moveType {
 };
 
 enum pieceType {
-    PAWN, KNIGHT, BISHOP, ROOK, QUEEN, NONE
+    PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE
 };
 
 class Piece {
@@ -60,6 +60,60 @@ public:
     pieceType whichType() { return PAWN; }
 };
 
+class Knight : public Piece {
+    int currX, currY;
+public:
+    Knight(Player who, int i, int j) : Piece(who) {
+        currX = i;
+        currY = j;
+    }
+
+    bool validMove(int i, int j) {
+        vector<int> dx = {2,  2, 1, -1,  1, -1, -2, -2};
+        vector<int> dy = {1, -1, 2,  2, -2, -2,  1, -1};
+
+        for(int idx = 0; idx < dx.size(); idx++) {
+            int nextX = currX + dx[idx];
+            int nextY = currY + dy[idx];
+
+            if(nextX < 0 || nextX >= 8) return false;
+            if(nextY < 0 || nextY >= 8) return false;
+            if(nextX == i && nextY == j) return true;
+        }
+
+        return false;
+    }
+
+    pieceType whichType() { return KNIGHT; }
+};
+
+class King : public Piece {
+    int currX, currY;
+public:
+    King(Player who, int i, int j) : Piece(who) {
+        currX = i;
+        currY = j;
+    }
+
+    bool validMove(int i, int j) {
+        vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
+        vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
+
+        for(int idx = 0; idx < dx.size(); idx++) {
+            int nextX = currX + dx[idx];
+            int nextY = currY + dy[idx];
+
+            if(nextX < 0 || nextX >= 8) return false;
+            if(nextY < 0 || nextY >= 8) return false;
+            if(nextX == i && nextY == j) return true;
+        }
+
+        return false;
+    }
+
+    pieceType whichType() { return KNIGHT; }
+};
+
 class Board {
     vector<vector<Piece*>> t;
     unordered_map<pieceType, char> pieceReprWhite;
@@ -69,15 +123,17 @@ public:
     Board() {
         t.assign(8, vector<Piece*>(8, nullptr));
         pieceReprWhite[PAWN] = 'P';
-        pieceReprWhite[KNIGHT] = 'K';
+        pieceReprWhite[KNIGHT] = 'N';
         pieceReprWhite[BISHOP] = 'B';
         pieceReprWhite[ROOK] = 'R';
         pieceReprWhite[QUEEN] = 'Q';
+        pieceReprWhite[KING] = 'K';
         pieceReprBlack[PAWN] = 'p';
-        pieceReprBlack[KNIGHT] = 'k';
+        pieceReprBlack[KNIGHT] = 'n';
         pieceReprBlack[BISHOP] = 'b';
         pieceReprBlack[ROOK] = 'r';
         pieceReprBlack[QUEEN] = 'q';
+        pieceReprBlack[KING] = 'k';
     }
 
     // initial version w/o string entry
@@ -88,7 +144,7 @@ public:
 
     void printCurrState() {
         for(int i = 7; i >= 0; i--) {
-            for(int j = 7; j >= 0; j--) {
+            for(int j = 0; j < 8; j--) {
                 if(t[i][j] == nullptr) {
                     cout << "- "; 
                     continue;
