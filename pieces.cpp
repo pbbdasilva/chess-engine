@@ -21,7 +21,7 @@ public:
     Piece(Player who) { color = who; }
     virtual bool validMove() { return false; }
     virtual pieceType whichType() { return NONE; }
-    Player whichColor() {return color; }
+    Player whichColor() { return color; }
 };
 
 class Pawn : public Piece { 
@@ -146,6 +146,22 @@ public:
     pieceType whichType() { return BISHOP; }
 };
 
+class Queen : public Piece {
+    int currX, currY;
+public:
+    Queen(Player who, int i, int j) : Piece(who) {
+        currX = i;
+        currY = j;
+    }
+
+    bool validMove(int i, int j) {
+        if(i + j != currX + currY || (i != currX && j != currY)) return false;
+        else return true;
+    }
+
+    pieceType whichType() { return QUEEN; }
+};
+
 class Board {
     vector<vector<Piece*>> t;
     unordered_map<pieceType, char> pieceReprWhite;
@@ -170,13 +186,30 @@ public:
 
     // initial version w/o string entry
     void createGame() {
+        t[0][0] = new Rook(WHITE, 0, 0);
+        t[0][7] = new Rook(WHITE, 0, 7);
+        t[0][2] = new Bishop(WHITE, 0, 2);
+        t[0][5] = new Bishop(WHITE, 0, 5);
+        t[0][1] = new Knight(WHITE, 0, 1);
+        t[0][6] = new Knight(WHITE, 0, 6);
+        t[0][3] = new Queen(WHITE, 0, 3);
+        t[0][4] = new King(WHITE, 0, 4);
         for(int col = 0; col < 8; col++) t[1][col] = new Pawn(WHITE, 1, col);
+
+        t[7][0] = new Rook(BLACK, 7, 0);
+        t[7][7] = new Rook(BLACK, 7, 7);
+        t[7][2] = new Bishop(BLACK, 7, 2);
+        t[7][5] = new Bishop(BLACK, 7, 5);
+        t[7][1] = new Knight(BLACK, 7, 1);
+        t[7][6] = new Knight(BLACK, 7, 6);
+        t[7][3] = new Queen(BLACK, 7, 3);
+        t[7][4] = new King(BLACK, 7, 4);
         for(int col = 0; col < 8; col++) t[6][col] = new Pawn(BLACK, 6, col);
     }
 
     void printCurrState() {
         for(int i = 7; i >= 0; i--) {
-            for(int j = 0; j < 8; j--) {
+            for(int j = 0; j < 8; j++) {
                 if(t[i][j] == nullptr) {
                     cout << "- "; 
                     continue;
