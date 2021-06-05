@@ -16,29 +16,37 @@ enum pieceType {
 class Piece {
 private:
     Player color;
-
+protected:
+    int currX, currY;
 public:
-    Piece(Player who) { color = who; }
+    Piece(Player who, int i, int j) { 
+        currX = i;
+        currY = j;
+        color = who; 
+    }
     virtual bool validMove(int i, int j, moveType type, Player turn) { 
         cout << "DEU RUIM\n";
         return false; 
     }
     virtual pieceType whichType() { return NONE; }
     Player whichColor() { return color; }
+    void updateCoord(int i, int j) {
+        currX = i;
+        currY = j;
+    }
 };
 
 class Pawn : public Piece { 
     bool firstMove = true;
-    int currX, currY;
     moveType type;
 
 public:    
-    Pawn(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    Pawn(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
+        cout << "sla\n";
+        cout << i << endl;
+        cout << j << endl;
         if(type == MOVE) {
             if(j != currY) {
                 cout << "wtf0\n";
@@ -53,9 +61,12 @@ public:
                 return false;
             }
 
-            cout << "passou daqui\n";
-            if(abs(i - currX) == 1) return true;
+            if(abs(i - currX) == 1) {
+                cout << "wtf3\n";
+                return true;
+            }
             if(abs(i - currX) == 2 && firstMove) {
+                cout << "wtf4\n";
                 firstMove = false;
                 return true;
             }
@@ -75,12 +86,8 @@ public:
 };
 
 class Knight : public Piece {
-    int currX, currY;
 public:
-    Knight(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    Knight(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
         vector<int> dx = {2,  2, 1, -1,  1, -1, -2, -2};
@@ -102,12 +109,8 @@ public:
 };
 
 class King : public Piece {
-    int currX, currY;
 public:
-    King(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    King(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
         vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
@@ -129,12 +132,8 @@ public:
 };
 
 class Rook : public Piece {
-    int currX, currY;
 public:
-    Rook(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    Rook(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
         if(i != currX && j != currY) return false;
@@ -145,12 +144,8 @@ public:
 };
 
 class Bishop : public Piece {
-    int currX, currY;
 public:
-    Bishop(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    Bishop(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
         if(i + j != currX + currY) return false;
@@ -161,12 +156,8 @@ public:
 };
 
 class Queen : public Piece {
-    int currX, currY;
 public:
-    Queen(Player who, int i, int j) : Piece(who) {
-        currX = i;
-        currY = j;
-    }
+    Queen(Player who, int i, int j) : Piece(who, i, j) {}
 
     bool validMove(int i, int j, moveType type, Player turn) {
         if(i + j != currX + currY || (i != currX && j != currY)) return false;
@@ -246,18 +237,38 @@ public:
         return false;
     }
 
+    bool checkPath(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+        auto [currX, currY] = currCoord;
+        auto [nextX, nextY] = nextCoord;
+
+        int deltaX = nextX - currX > 0 ? 1 : 0;
+        int deltaY =  nextY - currY > 0 ? 1 : 0;
+
+        while(currX != nextX && currY != nextY) {
+            currX += deltaX;
+            currY += deltaY;
+
+            if(t[currX][currY] != nullptr) return false;
+        }
+
+        return true;        
+    }
+
     void move(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
         moveType moveIntention;
 
         if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
-        
+        if(t[nextX][nextY]->whichType() == turn) throw runtime_error("target coord is the same type as who is moving\n");
+
         if(t[nextX][nextY] != nullptr) moveIntention = ATTACK;
         else moveIntention = MOVE;
         
         if(t[currX][currY]->validMove(nextX, nextY, moveIntention, turn) == false) throw std::invalid_argument("not valid move");
+        if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
 
+        t[currX][currY]->updateCoord(nextX, nextY);
         t[nextX][nextY] = t[currX][currY];
         t[currX][currY] = nullptr;
 
@@ -271,10 +282,13 @@ public:
 int main() {
     Board b;
     b.createGame();
-    // b.printCurrState();
 
     b.move({1, 1}, {3, 1});
     b.move({6,1}, {5,1});
+
+    b.printCurrState();
+    
     b.move({3, 1}, {4, 1});
+    
     b.printCurrState();
 }
