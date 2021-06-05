@@ -19,7 +19,10 @@ private:
 
 public:
     Piece(Player who) { color = who; }
-    virtual bool validMove() { return false; }
+    virtual bool validMove(int i, int j, moveType type, Player turn) { 
+        cout << "DEU RUIM\n";
+        return false; 
+    }
     virtual pieceType whichType() { return NONE; }
     Player whichColor() { return color; }
 };
@@ -27,6 +30,7 @@ public:
 class Pawn : public Piece { 
     bool firstMove = true;
     int currX, currY;
+    moveType type;
 
 public:    
     Pawn(Player who, int i, int j) : Piece(who) {
@@ -34,14 +38,24 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j, moveType type) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         if(type == MOVE) {
-            if(i != currY) return false;
-            if(j > currY && BLACK) return false;
-            if(j < currY && WHITE) return false;
+            if(j != currY) {
+                cout << "wtf0\n";
+                return false;
+            }
+            if(i > currX && turn == BLACK) {
+                cout << "wtf1\n";
+                return false;
+            }
+            if(i < currX && turn == WHITE) {
+                cout << "wtf2\n";
+                return false;
+            }
 
-            if(abs(j - currX) == 1) return true;
-            if(abs(j - currX) == 2 && firstMove) {
+            cout << "passou daqui\n";
+            if(abs(i - currX) == 1) return true;
+            if(abs(i - currX) == 2 && firstMove) {
                 firstMove = false;
                 return true;
             }
@@ -68,7 +82,7 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         vector<int> dx = {2,  2, 1, -1,  1, -1, -2, -2};
         vector<int> dy = {1, -1, 2,  2, -2, -2,  1, -1};
 
@@ -95,7 +109,7 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
         vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
 
@@ -122,7 +136,7 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         if(i != currX && j != currY) return false;
         else return true;
     }
@@ -138,7 +152,7 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         if(i + j != currX + currY) return false;
         else return true;
     }
@@ -154,7 +168,7 @@ public:
         currY = j;
     }
 
-    bool validMove(int i, int j) {
+    bool validMove(int i, int j, moveType type, Player turn) {
         if(i + j != currX + currY || (i != currX && j != currY)) return false;
         else return true;
     }
@@ -166,10 +180,13 @@ class Board {
     vector<vector<Piece*>> t;
     unordered_map<pieceType, char> pieceReprWhite;
     unordered_map<pieceType, char> pieceReprBlack;
+    unordered_map<Player, Player> switchTurn;
+    Player turn = WHITE;
 
 public:
     Board() {
         t.assign(8, vector<Piece*>(8, nullptr));
+        
         pieceReprWhite[PAWN] = 'P';
         pieceReprWhite[KNIGHT] = 'N';
         pieceReprWhite[BISHOP] = 'B';
@@ -182,6 +199,9 @@ public:
         pieceReprBlack[ROOK] = 'r';
         pieceReprBlack[QUEEN] = 'q';
         pieceReprBlack[KING] = 'k';
+
+        switchTurn[WHITE] = BLACK;
+        switchTurn[BLACK] = WHITE;
     }
 
     // initial version w/o string entry
@@ -221,10 +241,40 @@ public:
             cout << endl;
         }
     }
+
+    bool checkWin() {
+        return false;
+    }
+
+    void move(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+        auto [currX, currY] = currCoord;
+        auto [nextX, nextY] = nextCoord;
+        moveType moveIntention;
+
+        if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
+        
+        if(t[nextX][nextY] != nullptr) moveIntention = ATTACK;
+        else moveIntention = MOVE;
+        
+        if(t[currX][currY]->validMove(nextX, nextY, moveIntention, turn) == false) throw std::invalid_argument("not valid move");
+
+        t[nextX][nextY] = t[currX][currY];
+        t[currX][currY] = nullptr;
+
+        if(checkWin()) {
+            cout << "Player " << turn << " WON!\n";
+            exit(0);
+        } else turn = switchTurn[turn];
+    }
 };
 
 int main() {
     Board b;
     b.createGame();
+    // b.printCurrState();
+
+    b.move({1, 1}, {3, 1});
+    b.move({6,1}, {5,1});
+    b.move({3, 1}, {4, 1});
     b.printCurrState();
 }
