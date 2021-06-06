@@ -260,13 +260,13 @@ public:
         moveType moveIntention;
 
         if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
-        if(t[nextX][nextY]->whichType() == turn) throw runtime_error("target coord is the same type as who is moving\n");
+        if(t[nextX][nextY] != nullptr && t[nextX][nextY]->whichColor() == turn) throw runtime_error("target coord is the same type as who is moving\n");
 
         if(t[nextX][nextY] != nullptr) moveIntention = ATTACK;
         else moveIntention = MOVE;
         
         if(t[currX][currY]->validMove(nextX, nextY, moveIntention, turn) == false) throw std::invalid_argument("not valid move");
-        if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
+        // if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
 
         t[currX][currY]->updateCoord(nextX, nextY);
         t[nextX][nextY] = t[currX][currY];
