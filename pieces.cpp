@@ -147,8 +147,8 @@ class Bishop : public Piece {
 public:
     Bishop(Player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
-        if(i + j != currX + currY) return false;
+    bool validMove(int i, int j, moveType type, Player turn) { // (0,2) -> (1,1)
+        if(i + j != currX + currY && i - currX != j - currY) return false;
         else return true;
     }
 
@@ -159,8 +159,8 @@ class Queen : public Piece {
 public:
     Queen(Player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
-        if(i + j != currX + currY || (i != currX && j != currY)) return false;
+    bool validMove(int i, int j, moveType type, Player turn) { // 7, 3
+        if((i + j != currX + currY && i - currX != j - currY) && (i != currX && j != currY)) return false;
         else return true;
     }
 
@@ -169,9 +169,13 @@ public:
 
 class Board {
     vector<vector<Piece*>> t;
+    
+    unordered_map<Player, pair<int,int>> kingPos;
+    unordered_map<Player, bool> checkStatus;
     unordered_map<pieceType, char> pieceReprWhite;
     unordered_map<pieceType, char> pieceReprBlack;
     unordered_map<Player, Player> switchTurn;
+    
     Player turn = WHITE;
 
 public:
@@ -216,6 +220,12 @@ public:
         t[7][3] = new Queen(BLACK, 7, 3);
         t[7][4] = new King(BLACK, 7, 4);
         for(int col = 0; col < 8; col++) t[6][col] = new Pawn(BLACK, 6, col);
+
+        kingPos[WHITE] = {0, 4};
+        kingPos[BLACK] = {7, 4};
+
+        checkStatus[WHITE] = false;
+        checkStatus[BLACK] = false;
     }
 
     void printCurrState() {
@@ -233,16 +243,24 @@ public:
         }
     }
 
-    bool checkWin() {
-        return false;
+    bool isCheck() {
+        auto [kingX, kingY] = kingPos[turn];
+        
     }
 
+    bool isMate() {
+        auto [whiteKingX, whiteKingY] = kingPos[WHITE];
+        auto [blackKingX, blackKingY] = kingPos[BLACK];
+
+
+    }
+    
     bool checkPath(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
 
-        int deltaX = nextX - currX > 0 ? 1 : 0;
-        int deltaY =  nextY - currY > 0 ? 1 : 0;
+        int deltaX = (nextX - currX)/abs(nextX - currX);
+        int deltaY =  (nextY - currY)/abs(nextY - currY);
 
         while(currX != nextX && currY != nextY) {
             currX += deltaX;
@@ -259,36 +277,40 @@ public:
         auto [nextX, nextY] = nextCoord;
         moveType moveIntention;
 
+        // check basic problems of movement
         if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
         if(t[nextX][nextY] != nullptr && t[nextX][nextY]->whichColor() == turn) throw runtime_error("target coord is the same type as who is moving\n");
+        if(checkStatus[turn] && t[currX][currY]->whichType() != KING) throw runtime_error("player is in check but did not move king\n");
 
+        // decide moveIntention
         if(t[nextX][nextY] != nullptr) moveIntention = ATTACK;
         else moveIntention = MOVE;
         
+        // check if movement is valid for this type of piece
         if(t[currX][currY]->validMove(nextX, nextY, moveIntention, turn) == false) throw std::invalid_argument("not valid move");
-        // if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
+        
+        // check if other piece is on the way
+        if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
 
+        // update piece position
         t[currX][currY]->updateCoord(nextX, nextY);
         t[nextX][nextY] = t[currX][currY];
         t[currX][currY] = nullptr;
 
-        if(checkWin()) {
-            cout << "Player " << turn << " WON!\n";
-            exit(0);
-        } else turn = switchTurn[turn];
+        if(t[nextX][nextY]->whichType() == KING) kingPos[turn] = {nextX, nextY};
+
+        turn = switchTurn[turn];
     }
 };
 
 int main() {
     Board b;
     b.createGame();
-
-    b.move({1, 1}, {3, 1});
-    b.move({6,1}, {5,1});
-
     b.printCurrState();
-    
-    b.move({3, 1}, {4, 1});
-    
+    b.move({1, 5}, {3, 5});
+    b.move({6,4}, {4,4});
+    b.move({1, 0}, {2, 0});
+    b.printCurrState();
+    b.move({7, 3}, {3, 7});
     b.printCurrState();
 }
