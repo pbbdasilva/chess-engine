@@ -3,12 +3,15 @@ using namespace std;
 
 class Board {
     vector<vector<Piece*>> t;
-    
+    vector<pair<int,int>> threatCoords[2];
+
     unordered_map<Player, pair<int,int>> kingPos;
     unordered_map<Player, bool> checkStatus;
     unordered_map<pieceType, char> pieceReprWhite;
     unordered_map<pieceType, char> pieceReprBlack;
-    unordered_map<Player, Player> switchTurn;
+    unordered_map<char, pieceType> charToPieceWhite;
+    unordered_map<char, pieceType> charToPieceBlack;
+    stack<pair<int,int>> lastMoves;
     
     Player turn = WHITE;
 
@@ -28,9 +31,9 @@ public:
         pieceReprBlack[ROOK] = 'r';
         pieceReprBlack[QUEEN] = 'q';
         pieceReprBlack[KING] = 'k';
-
-        switchTurn[WHITE] = BLACK;
-        switchTurn[BLACK] = WHITE;
+        
+        for(auto itr : pieceReprWhite) charToPieceWhite[itr.second] = itr.first;
+        for(auto itr : pieceReprBlack) charToPieceBlack[itr.second] = itr.first;
     }
 
     // initial version w/o string entry
@@ -62,9 +65,13 @@ public:
         checkStatus[BLACK] = false;
     }
 
+    void buildGame(string FEN) {
+
+    }
+
     void printCurrState() {
-        for(int i = 7; i >= 0; i--) {
-            for(int j = 0; j < 8; j++) {
+        for(int i = t.size() - 1; i >= 0; i--) {
+            for(int j = 0; j < t.size(); j++) {
                 if(t[i][j] == nullptr) {
                     cout << "- "; 
                     continue;
@@ -77,33 +84,101 @@ public:
         }
     }
 
-    bool isCheck() {
-        auto [kingX, kingY] = kingPos[turn];
-        
+    int isCheck(Player currTurn) {
+        auto [kingX, kingY] = kingPos[currTurn];
+        int nChecks = 0;
+        Player opColor = !currTurn;
+        threatCoords[currTurn].clear();
+
+        for(int i = 0; i < t.size(); i++) for(int j = 0; j < t.size(); j++) {
+            if(t[i][j] == nullptr or t[i][j]->whichColor() == currTurn) continue;
+            if(t[i][j]->validMove(kingX, kingY, ATTACK, opColor)) {
+                pair<int,int> currLocation = {i,j};
+                bool tmp = clearPath(currLocation, kingPos[currTurn]);
+                if(tmp) {
+                    threatCoords[currTurn].push_back({i,j});
+                    nChecks++;
+                }
+            }
+        }
+
+        checkStatus[currTurn] = (nChecks > 0);
+        return nChecks;
     }
 
     bool isMate() {
-        auto [whiteKingX, whiteKingY] = kingPos[WHITE];
-        auto [blackKingX, blackKingY] = kingPos[BLACK];
+        bool status = true;
+        isCheck(turn);
 
+        Player opColor = !turn;
+        int nChecks = isCheck(opColor);
+        // cout << endl << nChecks << endl;
+        if(nChecks == 0) return false;
 
+        if(nChecks > 2) {
+            auto [kingX, kingY] = kingPos[opColor];
+            for(auto& move : t[kingX][kingY]->genMoves(t)) {
+                if(!clearPath(kingPos[opColor], move)) continue;
+                
+                movePiece(kingPos[opColor], move);
+                if(isCheck(opColor) == 0) status = false;
+                movePiece(move, kingPos[opColor]);
+
+                if(!status) break;
+            }
+        } else {
+            for(int i = 0; i < t.size() and status; i++) {
+                for(int j = 0; j < t.size() and status; j++) {
+                    if(t[i][j] != nullptr and t[i][j]->whichColor() == opColor) {
+                        for(auto& move : t[i][j]->genMoves(t)) {
+                            if(!clearPath({i,j}, move)) continue;
+                            
+                            movePiece({i,j}, move);
+                            if(isCheck(opColor) == 0) status = false;
+                            movePiece(move, {i,j});
+
+                            if(!status) break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return status;
     }
     
-    bool checkPath(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+    bool clearPath(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
+        
+        if(t[currX][currY]->whichType() == KNIGHT) {
+            if(t[nextX][nextY] == nullptr or t[currX][currY]->whichColor() != t[nextX][nextY]->whichColor()) return true; // modify to smaller statement
+            else return false;
+        }
 
         int deltaX = (nextX - currX)/abs(nextX - currX);
         int deltaY =  (nextY - currY)/abs(nextY - currY);
+        int steps = max(abs(nextX - currX), abs(nextY - currY));
 
-        while(currX != nextX && currY != nextY) {
+        for(int i = 1; i < steps; i++) {
             currX += deltaX;
             currY += deltaY;
 
             if(t[currX][currY] != nullptr) return false;
         }
 
-        return true;        
+        return true;
+    }
+
+    void movePiece(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+        if(currCoord == nextCoord) return;
+        
+        auto [currX, currY] = currCoord;
+        auto [nextX, nextY] = nextCoord;
+
+        t[currX][currY]->updateCoord(nextX, nextY);
+        t[nextX][nextY] = t[currX][currY];
+        t[currX][currY] = nullptr;
     }
 
     void move(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
@@ -113,8 +188,8 @@ public:
 
         // check basic problems of movement
         if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
-        if(t[nextX][nextY] != nullptr && t[nextX][nextY]->whichColor() == turn) throw runtime_error("target coord is the same type as who is moving\n");
-        if(checkStatus[turn] && t[currX][currY]->whichType() != KING) throw runtime_error("player is in check but did not move king\n");
+        if(t[nextX][nextY] != nullptr and t[nextX][nextY]->whichColor() == turn) throw runtime_error("target coord is the same type as who is moving\n");
+        if(checkStatus[turn] and t[currX][currY]->whichType() != KING) throw runtime_error("player is in check but did not move king\n");
 
         // decide moveIntention
         if(t[nextX][nextY] != nullptr) moveIntention = ATTACK;
@@ -124,16 +199,25 @@ public:
         if(t[currX][currY]->validMove(nextX, nextY, moveIntention, turn) == false) throw std::invalid_argument("not valid move");
         
         // check if other piece is on the way
-        if(checkPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
+        if(clearPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
 
         // update piece position
-        t[currX][currY]->updateCoord(nextX, nextY);
-        t[nextX][nextY] = t[currX][currY];
-        t[currX][currY] = nullptr;
+        movePiece(currCoord, nextCoord);
 
         if(t[nextX][nextY]->whichType() == KING) kingPos[turn] = {nextX, nextY};
+        
+        bool status = isMate();
+        
+        if(checkStatus[turn]) throw invalid_argument("last move resulted in check (suicide)");
+        if(status) throw runtime_error("ENDGAME\n");
 
-        turn = switchTurn[turn];
+        turn = !turn;
+    }
+
+    void testGen(int x, int y) {
+        for(auto [i, j] : t[x][y]->genMoves(t)) {
+            cout << "(" << i << "," << j << ")" << endl;
+        }
     }
 };
 
@@ -141,10 +225,10 @@ int main() {
     Board b;
     b.createGame();
     b.printCurrState();
-    b.move({1, 5}, {3, 5});
+    b.move({1, 5}, {2, 5});
     b.move({6,4}, {4,4});
-    b.move({1, 0}, {2, 0});
+    b.move({1, 6}, {3, 6});
     b.printCurrState();
     b.move({7, 3}, {3, 7});
     b.printCurrState();
-}
+} // clearpath ta bugado
