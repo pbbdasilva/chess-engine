@@ -1,32 +1,32 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-enum Player { WHITE, BLACK };
-Player operator! (Player p) { return (p == WHITE) ? BLACK : WHITE; }
+enum player { WHITE, BLACK };
+player operator! (player p) { return (p == WHITE) ? BLACK : WHITE; }
 
 enum moveType { MOVE, ATTACK };
 enum pieceType { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
 
 class Piece {
 private:
-    Player color;
+    player color;
 protected:
     int currX, currY;
 public:
-    Piece(Player who, int i, int j) { 
+    Piece(player who, int i, int j) { 
         currX = i;
         currY = j;
         color = who; 
     }
     
-    virtual bool validMove(int i, int j, moveType type, Player turn) { 
+    virtual bool validMove(int i, int j, moveType type, player turn) { 
         cout << "DEU RUIM\n";
         return false; 
     }
     
     virtual pieceType whichType() { return NONE; }
     
-    Player whichColor() { return color; }
+    player whichColor() { return color; }
     
     void updateCoord(int i, int j) {
         currX = i;
@@ -35,7 +35,7 @@ public:
 
     virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t) { return {{}}; }
 
-    bool verifyOwnership(Player playerColor) { return (playerColor == whichColor()); }
+    bool verifyOwnership(player playerColor) { return (playerColor == whichColor()); }
 };
 
 class Pawn : public Piece { 
@@ -43,9 +43,9 @@ class Pawn : public Piece {
     moveType type;
 
 public:    
-    Pawn(Player who, int i, int j) : Piece(who, i, j) {}
+    Pawn(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
+    bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         if(type == MOVE) {
             if(j != currY) {
@@ -105,9 +105,9 @@ public:
 
 class Knight : public Piece {
 public:
-    Knight(Player who, int i, int j) : Piece(who, i, j) {}
+    Knight(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
+    bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         vector<int> dx = {2,  2, 1, -1,  1, -1, -2, -2};
         vector<int> dy = {1, -1, 2,  2, -2, -2,  1, -1};
@@ -147,9 +147,9 @@ public:
 
 class King : public Piece {
 public:
-    King(Player who, int i, int j) : Piece(who, i, j) {}
+    King(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
+    bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
         vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
@@ -189,9 +189,9 @@ public:
 
 class Rook : public Piece {
 public:
-    Rook(Player who, int i, int j) : Piece(who, i, j) {}
+    Rook(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
+    bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         if(i != currX and j != currY) return false;
         else return true;
@@ -213,9 +213,9 @@ public:
 
 class Bishop : public Piece {
 public:
-    Bishop(Player who, int i, int j) : Piece(who, i, j) {}
+    Bishop(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) {
+    bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         if(i + j != currX + currY and i - currX != j - currY) return false;
         else return true;
@@ -238,9 +238,9 @@ public:
 
 class Queen : public Piece {
 public:
-    Queen(Player who, int i, int j) : Piece(who, i, j) {}
+    Queen(player who, int i, int j) : Piece(who, i, j) {}
 
-    bool validMove(int i, int j, moveType type, Player turn) { // 7, 3
+    bool validMove(int i, int j, moveType type, player turn) { // 7, 3
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
         if((i + j != currX + currY and i - currX != j - currY) and (i != currX and j != currY)) return false;
         else return true;
@@ -263,5 +263,43 @@ public:
         }
 
         return moves;
+    }
+};
+
+class Factory {
+public:
+    Piece* buildPiece(pieceType type, player who, int i, int j) {
+        Piece* product = nullptr;
+
+        switch (type) {
+        case PAWN:
+            product = new Pawn(who, i, j);
+            break;
+        
+        case KNIGHT:
+            product = new Knight(who, i, j);
+            break;
+        
+        case ROOK:
+            product = new Rook(who, i, j);
+            break;
+
+        case BISHOP:
+            product = new Bishop(who, i, j);
+            break;
+        
+        case QUEEN:
+            product = new Queen(who, i, j);
+            break;
+        
+        case KING:
+            product = new King(who, i, j);
+            break;
+        
+        default:
+            break;
+        }
+
+        return product;
     }
 };
