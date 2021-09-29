@@ -1,19 +1,18 @@
-#include"pieces.h"
+#include"pieces.hpp"
 using namespace std;
 
 class Board {
     vector<vector<Piece*>> t;
     vector<pair<int,int>> threatCoords[2];
 
-    unordered_map<Player, pair<int,int>> kingPos;
-    unordered_map<Player, bool> checkStatus;
+    unordered_map<player, pair<int,int>> kingPos;
+    unordered_map<player, bool> checkStatus;
     unordered_map<pieceType, char> pieceReprWhite;
     unordered_map<pieceType, char> pieceReprBlack;
-    unordered_map<char, pieceType> charToPieceWhite;
-    unordered_map<char, pieceType> charToPieceBlack;
+    unordered_map<char, pair<pieceType, player>> charToPiece;
     stack<pair<int,int>> lastMoves;
     
-    Player turn = WHITE;
+    player turn = WHITE;
 
 public:
     Board() {
@@ -32,41 +31,46 @@ public:
         pieceReprBlack[QUEEN] = 'q';
         pieceReprBlack[KING] = 'k';
         
-        for(auto itr : pieceReprWhite) charToPieceWhite[itr.second] = itr.first;
-        for(auto itr : pieceReprBlack) charToPieceBlack[itr.second] = itr.first;
+        for(auto itr : pieceReprWhite) charToPiece[itr.second] = {itr.first, WHITE};
+        for(auto itr : pieceReprBlack) charToPiece[itr.second] = {itr.first, BLACK};
     }
 
-    // initial version w/o string entry
-    void createGame() {
-        t[0][0] = new Rook(WHITE, 0, 0);
-        t[0][7] = new Rook(WHITE, 0, 7);
-        t[0][2] = new Bishop(WHITE, 0, 2);
-        t[0][5] = new Bishop(WHITE, 0, 5);
-        t[0][1] = new Knight(WHITE, 0, 1);
-        t[0][6] = new Knight(WHITE, 0, 6);
-        t[0][3] = new Queen(WHITE, 0, 3);
-        t[0][4] = new King(WHITE, 0, 4);
-        for(int col = 0; col < 8; col++) t[1][col] = new Pawn(WHITE, 1, col);
+    void buildBoard(string& pieceString) {
+        Factory factory;
+        int idx = 0;
 
-        t[7][0] = new Rook(BLACK, 7, 0);
-        t[7][7] = new Rook(BLACK, 7, 7);
-        t[7][2] = new Bishop(BLACK, 7, 2);
-        t[7][5] = new Bishop(BLACK, 7, 5);
-        t[7][1] = new Knight(BLACK, 7, 1);
-        t[7][6] = new Knight(BLACK, 7, 6);
-        t[7][3] = new Queen(BLACK, 7, 3);
-        t[7][4] = new King(BLACK, 7, 4);
-        for(int col = 0; col < 8; col++) t[6][col] = new Pawn(BLACK, 6, col);
+        for(int row = 7; row >= 0; row--) {
+            for(int col = 0; col < 8; col++) {
+                char ch = pieceString[idx++];
+                if(ch == '/') ch = pieceString[idx++];
 
-        kingPos[WHITE] = {0, 4};
-        kingPos[BLACK] = {7, 4};
-
-        checkStatus[WHITE] = false;
-        checkStatus[BLACK] = false;
+                if(ch >= 49 and ch <= 57) col += (ch - '1');
+                else {
+                    auto [type, color] = charToPiece[ch];
+                    t[row][col] = factory.buildPiece(type, color, row, col);
+                    
+                    if(ch == 'k') kingPos[BLACK] = {row, col};
+                    else if(ch == 'K') kingPos[WHITE] = {row, col};
+                }
+            }
+        }
     }
 
-    void buildGame(string FEN) {
+    void defineTurn(string& turnString) {
+        if(turnString == "w") turn = WHITE;
+        else turn = BLACK;
+    }
 
+    void fenParser(string FEN) {
+        int piecesIdx = FEN.find(' ');
+
+        string pieceString = FEN.substr(0, piecesIdx);
+        string turnString = FEN.substr(piecesIdx + 1, 1);
+
+        buildBoard(pieceString);
+        defineTurn(turnString);
+
+        isMate();
     }
 
     void printCurrState() {
@@ -84,10 +88,10 @@ public:
         }
     }
 
-    int isCheck(Player currTurn) {
+    int isCheck(player currTurn) {
         auto [kingX, kingY] = kingPos[currTurn];
         int nChecks = 0;
-        Player opColor = !currTurn;
+        player opColor = !currTurn;
         threatCoords[currTurn].clear();
 
         for(int i = 0; i < t.size(); i++) for(int j = 0; j < t.size(); j++) {
@@ -108,9 +112,9 @@ public:
 
     bool isMate() {
         bool status = true;
-        isCheck(turn);
+        int ownChecks = isCheck(turn);
 
-        Player opColor = !turn;
+        player opColor = !turn;
         int nChecks = isCheck(opColor);
         // cout << endl << nChecks << endl;
         if(nChecks == 0) return false;
@@ -151,13 +155,16 @@ public:
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
         
+        if((nextX - currX) == 0 and (nextY - currY) == 0) return false;
+
         if(t[currX][currY]->whichType() == KNIGHT) {
             if(t[nextX][nextY] == nullptr or t[currX][currY]->whichColor() != t[nextX][nextY]->whichColor()) return true; // modify to smaller statement
             else return false;
         }
 
-        int deltaX = (nextX - currX)/abs(nextX - currX);
-        int deltaY =  (nextY - currY)/abs(nextY - currY);
+        int deltaX = 0, deltaY = 0;
+        if((nextX - currX) != 0) deltaX = (nextX - currX)/abs(nextX - currX);
+        if((nextY - currY) != 0) deltaY =  (nextY - currY)/abs(nextY - currY);
         int steps = max(abs(nextX - currX), abs(nextY - currY));
 
         for(int i = 1; i < steps; i++) {
@@ -223,12 +230,13 @@ public:
 
 int main() {
     Board b;
-    b.createGame();
+    // b.createGame();
+    b.fenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b");
     b.printCurrState();
-    b.move({1, 5}, {2, 5});
-    b.move({6,4}, {4,4});
-    b.move({1, 6}, {3, 6});
-    b.printCurrState();
-    b.move({7, 3}, {3, 7});
-    b.printCurrState();
+    // b.move({1, 5}, {2, 5});
+    // b.move({6,4}, {4,4});
+    // b.move({1, 6}, {3, 6});
+    // b.printCurrState();
+    // b.move({7, 3}, {3, 7});
+    // b.printCurrState();
 } // clearpath ta bugado
