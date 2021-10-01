@@ -2,8 +2,10 @@
 using namespace std;
 
 class Board {
+    int round = 0;
     vector<vector<Piece*>> t;
     vector<pair<int,int>> threatCoords[2];
+    queue<tuple<int,int,int>> enPassantPieces;
 
     unordered_map<player, pair<int,int>> kingPos;
     unordered_map<player, bool> checkStatus;
@@ -74,6 +76,7 @@ public:
     }
 
     void printCurrState() {
+        string line = "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n";
         for(int i = t.size() - 1; i >= 0; i--) {
             for(int j = 0; j < t.size(); j++) {
                 if(t[i][j] == nullptr) {
@@ -86,6 +89,8 @@ public:
             }
             cout << endl;
         }
+
+        cout << line;
     }
 
     int isCheck(player currTurn) {
@@ -116,9 +121,8 @@ public:
 
         player opColor = !turn;
         int nChecks = isCheck(opColor);
-        // cout << endl << nChecks << endl;
-        if(nChecks == 0) return false;
 
+        if(nChecks == 0) return false;
         if(nChecks > 2) {
             auto [kingX, kingY] = kingPos[opColor];
             for(auto& move : t[kingX][kingY]->genMoves(t)) {
@@ -151,7 +155,7 @@ public:
         return status;
     }
     
-    bool clearPath(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+    bool clearPath(pair<int,int> currCoord, pair<int,int> nextCoord) {
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
         
@@ -177,18 +181,48 @@ public:
         return true;
     }
 
-    void movePiece(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+    void movePiece(pair<int,int> currCoord, pair<int,int> nextCoord) {
         if(currCoord == nextCoord) return;
         
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
+
+        // set enpassant
+        if(t[currX][currY]->whichType() == PAWN) {
+            t[currX][currY]->setEnPassantStatus(false);
+
+            if(abs(currX - nextX) == 2) {
+                player currTurn = t[currX][currY]->whichColor();
+                vector<int> dy = {-1, 1};
+                vector<int> dx = { 0, 0};
+
+                for(int i = 0; i < dx.size(); i++) {
+                    int candX = nextX + dx[i];
+                    int candY = nextY + dy[i];
+
+                    if(candX < 0 or candX >= 8) continue;
+                    if(candY < 0 or candY >= 8) continue;
+                    if(t[candX][candY] == nullptr) continue;
+
+                    if(t[candX][candY]->whichColor() == (!currTurn) and t[candX][candY]->whichType() == PAWN) {
+                        t[candX][candY]->setEnPassantStatus(true);
+                        enPassantPieces.push({candX, candY, round});
+                        
+                        if(currTurn == WHITE) t[candX][candY]->setCoordEnPassant({nextX - 1, nextY});
+                        else t[candX][candY]->setCoordEnPassant({nextX + 1, nextY});
+
+                        t[candX][candY]->setCoordEnPassantCapture({nextX, nextY});
+                    }
+                }
+            }
+        }
 
         t[currX][currY]->updateCoord(nextX, nextY);
         t[nextX][nextY] = t[currX][currY];
         t[currX][currY] = nullptr;
     }
 
-    void move(tuple<int,int> currCoord, tuple<int,int> nextCoord) {
+    void move(pair<int,int> currCoord, pair<int,int> nextCoord) {
         auto [currX, currY] = currCoord;
         auto [nextX, nextY] = nextCoord;
         moveType moveIntention;
@@ -208,6 +242,14 @@ public:
         // check if other piece is on the way
         if(clearPath(currCoord, nextCoord) == false) throw std::invalid_argument("piece is on the way\n");
 
+        // if enPassant, capture because movePiece will only move to new position
+        if(t[currX][currY]->whichType() == PAWN and t[currX][currY]->getEnPassantStatus()) {
+            if(nextCoord == t[currX][currY]->getCoordEnPassant()) {
+                auto [captureX, captureY] = t[currX][currY]->getEnPassantCapture();
+                t[captureX][captureY] = nullptr;
+            }
+        }
+
         // update piece position
         movePiece(currCoord, nextCoord);
 
@@ -218,6 +260,20 @@ public:
         if(checkStatus[turn]) throw invalid_argument("last move resulted in check (suicide)");
         if(status) throw runtime_error("ENDGAME\n");
 
+        endRound();
+    }
+
+    void endRound() {
+        auto [x, y, pastRound] = enPassantPieces.front();
+
+        while(!enPassantPieces.empty() and pastRound != round) {
+            if(t[x][y] != nullptr) t[x][y]->setEnPassantStatus(false);
+            enPassantPieces.pop();
+            auto [x, y, z] = enPassantPieces.front();
+            pastRound = z;
+        }
+
+        round++;
         turn = !turn;
     }
 
@@ -230,13 +286,11 @@ public:
 
 int main() {
     Board b;
-    // b.createGame();
-    b.fenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b");
+    b.fenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
     b.printCurrState();
-    // b.move({1, 5}, {2, 5});
-    // b.move({6,4}, {4,4});
-    // b.move({1, 6}, {3, 6});
-    // b.printCurrState();
-    // b.move({7, 3}, {3, 7});
-    // b.printCurrState();
-} // clearpath ta bugado
+    b.move({3, 4}, {4, 4});
+    b.move({6,3}, {4,3});
+    b.printCurrState();
+    b.move({4,4}, {5,3});
+    b.printCurrState();
+}

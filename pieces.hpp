@@ -12,6 +12,9 @@ private:
     player color;
 protected:
     int currX, currY;
+    bool enPassant = false;
+    pair<int,int> enPassantMove;
+    pair<int,int> enPassantCapture;
 public:
     Piece(player who, int i, int j) { 
         currX = i;
@@ -36,6 +39,18 @@ public:
     virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t) { return {{}}; }
 
     bool verifyOwnership(player playerColor) { return (playerColor == whichColor()); }
+
+    virtual void setEnPassantStatus(bool updatedStatus) {}
+    
+    virtual void setCoordEnPassant(pair<int,int> coords) {}
+
+    virtual void setCoordEnPassantCapture(pair<int,int> coords) {}
+
+    bool getEnPassantStatus() { return enPassant; }
+
+    pair<int,int> getCoordEnPassant() { return enPassantMove; }
+
+    pair<int,int> getEnPassantCapture() { return enPassantCapture; }
 };
 
 class Pawn : public Piece { 
@@ -47,6 +62,10 @@ public:
 
     bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
+
+        pair<int,int> candMove = {i, j};
+        if(enPassant and  candMove == enPassantMove) return true;
+
         if(type == MOVE) {
             if(j != currY) {
                 // cout << "wtf0\n";
@@ -84,6 +103,12 @@ public:
 
     pieceType whichType() { return PAWN; }
 
+    void setEnPassantStatus(bool updatedStatus) { enPassant = updatedStatus; }
+
+    void setCoordEnPassant(pair<int,int> coords) { enPassantMove = coords; }
+
+    void setCoordEnPassantCapture(pair<int,int> coords) { enPassantCapture = coords; }
+
     vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t) {
         vector<pair<int,int>> moves;
 
@@ -99,6 +124,8 @@ public:
             if(currY - 1 >= 0 and t[currX-1][currY-1] != nullptr and t[currX-1][currY-1]->whichColor() == BLACK) moves.push_back({currX-1, currY-1});
         }
 
+        if(enPassant) moves.push_back(enPassantMove);
+        
         return moves;
     }
 };
