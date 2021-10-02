@@ -3,6 +3,7 @@ using namespace std;
 
 class Board {
     int round = 0;
+    bool castling = false;
     vector<vector<Piece*>> t;
     vector<pair<int,int>> threatCoords[2];
     queue<tuple<int,int,int>> enPassantPieces;
@@ -217,9 +218,27 @@ public:
             }
         }
 
+        t[currX][currY]->setMoveStatus(false);
         t[currX][currY]->updateCoord(nextX, nextY);
         t[nextX][nextY] = t[currX][currY];
         t[currX][currY] = nullptr;
+    }
+
+    void castle(pair<int,int> currCoord, pair<int,int> nextCoord) {
+        auto [currX, currY] = currCoord;
+        auto [nextX, nextY] = nextCoord;
+
+        if(nextY == 2) {
+            t[currX][3] = t[currX][0];
+            t[currX][0] = nullptr;
+            t[currX][3]->setMoveStatus(false);
+        } else if(nextY == 6) {
+            t[currX][5] = t[currX][7];
+            t[currX][7] = nullptr;
+            t[currX][5]->setMoveStatus(false);
+        }
+
+
     }
 
     void move(pair<int,int> currCoord, pair<int,int> nextCoord) {
@@ -229,7 +248,7 @@ public:
 
         // check basic problems of movement
         if(t[currX][currY] == nullptr) throw runtime_error("coord does not have a piece");
-        if(t[nextX][nextY] != nullptr and t[nextX][nextY]->whichColor() == turn) throw runtime_error("target coord is the same type as who is moving\n");
+        if(t[nextX][nextY] != nullptr and t[nextX][nextY]->whichColor() == turn) throw runtime_error("cannot overplace pieces\n");
         if(checkStatus[turn] and t[currX][currY]->whichType() != KING) throw runtime_error("player is in check but did not move king\n");
 
         // decide moveIntention
@@ -249,12 +268,26 @@ public:
                 t[captureX][captureY] = nullptr;
             }
         }
+        
+        //castling
+        if(t[currX][currY]->whichType() == KING and t[currX][currY]->getMoveStatus()) {
+            if(nextY == 2) {
+                if(t[currX][0] != nullptr and t[currX][0]->whichType() == ROOK and t[currX][0]->getMoveStatus()) castling = true;
+                else throw runtime_error("castle attempt but did not fulfill all requirements\n");
+            } else if(nextY == 6) {
+                if(t[currX][7] != nullptr and t[currX][7]->whichType() == ROOK and t[currX][7]->getMoveStatus()) castling = true;
+                else throw runtime_error("castle attempt but did not fulfill all requirements\n");
+            }
+        }
 
+        // perform rook movement before king
+        if(castling) castle(currCoord, nextCoord);
+        
         // update piece position
         movePiece(currCoord, nextCoord);
-
         if(t[nextX][nextY]->whichType() == KING) kingPos[turn] = {nextX, nextY};
         
+
         bool status = isMate();
         
         if(checkStatus[turn]) throw invalid_argument("last move resulted in check (suicide)");
@@ -274,6 +307,7 @@ public:
         }
 
         round++;
+        castling = false;
         turn = !turn;
     }
 
@@ -286,11 +320,16 @@ public:
 
 int main() {
     Board b;
-    b.fenParser("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    b.fenParser("rn1qkbnr/ppp1pppp/8/5b2/2p1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 4");
     b.printCurrState();
-    b.move({3, 4}, {4, 4});
-    b.move({6,3}, {4,3});
+    b.move({0,4}, {0,6});
     b.printCurrState();
-    b.move({4,4}, {5,3});
+    b.move({6,4}, {4,4});
+    b.printCurrState();
+    b.move({1,3}, {3,3});
+    b.printCurrState();
+    b.move({3,2}, {2,3});
+    b.printCurrState();
+    b.move({0,3}, {2,3});
     b.printCurrState();
 }

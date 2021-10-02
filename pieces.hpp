@@ -13,6 +13,7 @@ private:
 protected:
     int currX, currY;
     bool enPassant = false;
+    bool unMoved = true;
     pair<int,int> enPassantMove;
     pair<int,int> enPassantCapture;
 public:
@@ -46,7 +47,11 @@ public:
 
     virtual void setCoordEnPassantCapture(pair<int,int> coords) {}
 
+    void setMoveStatus(bool status) { unMoved = status; }
+
     bool getEnPassantStatus() { return enPassant; }
+
+    bool getMoveStatus() { return unMoved; }
 
     pair<int,int> getCoordEnPassant() { return enPassantMove; }
 
@@ -178,6 +183,8 @@ public:
 
     bool validMove(int i, int j, moveType type, player turn) {
         if(verifyOwnership(turn) == false) throw runtime_error("this piece does not belong to this player\n");
+        if(unMoved and (i == currX) and (j == 2 or j == 6)) return true;
+        
         vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
         vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
 
