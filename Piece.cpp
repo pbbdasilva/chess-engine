@@ -22,8 +22,6 @@ void Piece::updateCoord(int i, int j) {
     currY = j;
 }
 
-vector<pair<int,int>> Piece::genMoves(vector<vector<Piece*>>& t) { return {{}}; }
-
 bool Piece::verifyOwnership(Player playerColor) { return (playerColor == whichColor()); }
 
 void Piece::setMoveStatus(bool status) { unMoved = status; }

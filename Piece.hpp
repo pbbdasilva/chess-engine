@@ -25,15 +25,15 @@ public:
     
     void updateCoord(int i, int j);
 
-    virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t);
-
     bool verifyOwnership(Player playerColor);
 
-    virtual void setEnPassantStatus(bool updatedStatus);
-    
-    virtual void setCoordEnPassant(pair<int,int> coords);
+    virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t) = 0;
 
-    virtual void setCoordEnPassantCapture(pair<int,int> coords);
+    virtual void setEnPassantStatus(bool updatedStatus) = 0;
+    
+    virtual void setCoordEnPassant(pair<int,int> coords) = 0;
+
+    virtual void setCoordEnPassantCapture(pair<int,int> coords) = 0;
 
     void setMoveStatus(bool status);
 
