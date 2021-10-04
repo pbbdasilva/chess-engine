@@ -33,3 +33,11 @@ bool Piece::getMoveStatus() { return unMoved; }
 pair<int,int> Piece::getCoordEnPassant() { return enPassantMove; }
 
 pair<int,int> Piece::getEnPassantCapture() { return enPassantCapture; }
+
+vector<pair<int,int>> Piece::genMoves(vector<vector<Piece*>>& t) { return {{}}; }
+
+void Piece::setEnPassantStatus(bool updatedStatus) {}
+    
+void Piece::setCoordEnPassant(pair<int,int> coords) {}
+
+void Piece::setCoordEnPassantCapture(pair<int,int> coords) {}

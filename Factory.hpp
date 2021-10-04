@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Piece.hpp"
 #include "Pawn.hpp"
 #include "King.hpp"

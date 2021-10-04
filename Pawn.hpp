@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Piece.hpp"
 using namespace std;
 

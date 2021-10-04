@@ -1,9 +1,8 @@
-#include<bits/stdc++.h>
-using namespace std;
+#pragma once
 
-enum Player { WHITE, BLACK };
-enum MoveType { MOVE, ATTACK };
-enum PieceType { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE };
+#include<bits/stdc++.h>
+#include"Enums.hpp"
+using namespace std;
 
 class Piece {
 private:
@@ -27,13 +26,13 @@ public:
 
     bool verifyOwnership(Player playerColor);
 
-    virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t) = 0;
+    virtual vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t);
 
-    virtual void setEnPassantStatus(bool updatedStatus) = 0;
+    virtual void setEnPassantStatus(bool updatedStatus);
     
-    virtual void setCoordEnPassant(pair<int,int> coords) = 0;
+    virtual void setCoordEnPassant(pair<int,int> coords);
 
-    virtual void setCoordEnPassantCapture(pair<int,int> coords) = 0;
+    virtual void setCoordEnPassantCapture(pair<int,int> coords);
 
     void setMoveStatus(bool status);
 
