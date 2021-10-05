@@ -8,5 +8,5 @@ public:
     PieceType whichType();
 
     bool validMove(int i, int j, MoveType type, Player turn);
-    vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t);
+    std::vector<std::pair<int,int>> genMoves(std::vector<std::vector<Piece*>>& t);
 };
