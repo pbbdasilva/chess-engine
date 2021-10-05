@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CCOMP="g++"
-FILE="*.cpp"
+FILE="./src/*.cpp"
 CFLAGS="-std=c++17"
 FLAGS="-o"
 EXE="main"
