@@ -5,19 +5,15 @@
 class Game {
     bool running = true, validMove = true;
     Board b;
-    pair<int,int> currCoord, nextCoord;
+    std::pair<int,int> currCoord, nextCoord;
 public:
     Game();
-    
-    Game(string FEN);
+    Game(std::string FEN);
 
     void run();
-    
     void processInput();
-    
     void play();
-    
-    void render();
 
+    void render();
     void initialRender();
 };

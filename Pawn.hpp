@@ -1,24 +1,18 @@
 #pragma once
 
 #include "Piece.hpp"
-using namespace std;
 
-class Pawn : public Piece { 
+class Pawn : public Piece {
     bool firstMove = true;
     MoveType type;
-
-public:    
+public:
     Pawn(Player who, int i, int j);
-
-    bool validMove(int i, int j, MoveType type, Player turn);
-
     PieceType whichType();
 
     void setEnPassantStatus(bool updatedStatus);
+    void setCoordEnPassant(std::pair<int,int> coords);
+    void setCoordEnPassantCapture(std::pair<int,int> coords);
 
-    void setCoordEnPassant(pair<int,int> coords);
-
-    void setCoordEnPassantCapture(pair<int,int> coords);
-
-    vector<pair<int,int>> genMoves(vector<vector<Piece*>>& t);
+    bool validMove(int i, int j, MoveType type, Player turn);
+    std::vector<std::pair<int,int>> genMoves(std::vector<std::vector<Piece*>>& t);
 };

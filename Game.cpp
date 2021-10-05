@@ -1,8 +1,10 @@
 #include "Game.hpp"
+using namespace std;
 
 Game::Game() { b.fenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); }
 
 Game::Game(string FEN) { b.fenParser(FEN); }
+
 
 void Game::run() {
     initialRender();
@@ -28,8 +30,9 @@ void Game::processInput() {
 
 void Game::play() { validMove = b.move(currCoord, nextCoord); }
 
-void Game::render() { 
-    if(validMove) b.printCurrState(); 
+
+void Game::render() {
+    if(validMove) b.printCurrState();
     else cout << "=-=-=-=-=-=-=- INVALID MOVE -=-=-=-=-=-=-=\n";
 }
 
