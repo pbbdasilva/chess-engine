@@ -15,7 +15,7 @@ bool Bishop::validMove(int i, int j, MoveType type, Player turn) {
     return true;
 }
 
-vector<pair<int,int>> Bishop::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> Bishop::genMoves(const vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
     Player pieceColor = whichColor();
 

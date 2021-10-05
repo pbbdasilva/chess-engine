@@ -16,7 +16,7 @@ bool Queen::validMove(int i, int j, MoveType type, Player turn) { // 7, 3
     else return true;
 }
 
-vector<pair<int,int>> Queen::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> Queen::genMoves(const vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
     Player pieceColor = whichColor();
 

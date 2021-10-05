@@ -25,7 +25,7 @@ bool Knight::validMove(int i, int j, MoveType type, Player turn) {
     return false;
 }
 
-vector<pair<int,int>> Knight::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> Knight::genMoves(const vector<vector<Piece*>>& t) {
     vector<int> dx = {2,  2, 1, -1,  1, -1, -2, -2};
     vector<int> dy = {1, -1, 2,  2, -2, -2,  1, -1};
     vector<pair<int,int>> moves;

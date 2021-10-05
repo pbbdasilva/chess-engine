@@ -27,7 +27,7 @@ bool King::validMove(int i, int j, MoveType type, Player turn) {
     return false;
 }
 
-vector<pair<int,int>> King::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> King::genMoves(const vector<vector<Piece*>>& t) {
     vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
     vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
     vector<pair<int,int>> moves;

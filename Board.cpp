@@ -34,7 +34,7 @@ void Board::fenParser(string FEN) {
     isMate();
 }
 
-void Board::buildBoard(string& pieceString) {
+void Board::buildBoard(const string& pieceString) {
     Factory factory;
     int idx = 0;
 
@@ -55,7 +55,7 @@ void Board::buildBoard(string& pieceString) {
     }
 }
 
-void Board::defineTurn(string& turnString) {
+void Board::defineTurn(const string& turnString) {
     if(turnString == "w") turn = Player::WHITE;
     else turn = Player::BLACK;
 }

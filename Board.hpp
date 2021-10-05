@@ -21,9 +21,9 @@ class Board {
 public:
     Board();
 
-    void fenParser(std::string s);
-    void buildBoard(std::string& pieceString);
-    void defineTurn(std::string& turnString);
+    void fenParser(const std::string s);
+    void buildBoard(const std::string& pieceString);
+    void defineTurn(const std::string& turnString);
 
     void printCurrState();
 

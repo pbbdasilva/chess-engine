@@ -14,7 +14,7 @@ bool Rook::validMove(int i, int j, MoveType type, Player turn) {
     else return true;
 }
 
-vector<pair<int,int>> Rook::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> Rook::genMoves(const vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
     Player pieceColor = whichColor();
 

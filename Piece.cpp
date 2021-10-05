@@ -45,4 +45,4 @@ bool Piece::validMove(int i, int j, MoveType type, Player turn) {
     return false;
 }
 
-vector<pair<int,int>> Piece::genMoves(vector<vector<Piece*>>& t) { return {{}}; }
+vector<pair<int,int>> Piece::genMoves(const vector<vector<Piece*>>& t) { return {{}}; }

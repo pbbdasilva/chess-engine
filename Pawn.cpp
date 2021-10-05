@@ -42,7 +42,7 @@ bool Pawn::validMove(int i, int j, MoveType type, Player turn) {
     }
 }
 
-vector<pair<int,int>> Pawn::genMoves(vector<vector<Piece*>>& t) {
+vector<pair<int,int>> Pawn::genMoves(const vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
 
     if(this->whichColor() == WHITE) {
