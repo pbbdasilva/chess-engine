@@ -19,8 +19,8 @@ bool King::validMove(int i, int j, MoveType type, Player turn) {
         int nextX = currX + dx[idx];
         int nextY = currY + dy[idx];
 
-        if(nextX < 0 || nextX >= 8) return false;
-        if(nextY < 0 || nextY >= 8) return false;
+        if(nextX < 0 || nextX >= 8) continue;
+        if(nextY < 0 || nextY >= 8) continue;
         if(nextX == i and nextY == j) return true;
     }
 
