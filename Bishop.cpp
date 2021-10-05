@@ -12,10 +12,14 @@ PieceType Bishop::whichType() { return BISHOP; }
 
 vector<pair<int,int>> Bishop::genMoves(vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
+    Player pieceColor = whichColor();
 
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
-            if(i + j == currX + currY and i - currX == j - currY) moves.push_back({i, j});
+            if((i + j) == (currX + currY) or (i - currX) == (j - currY)) {
+                if(t[i][j] != nullptr and t[i][j]->whichColor() == pieceColor) continue;
+                moves.push_back({i, j});
+            }
         }
     }
 

@@ -40,9 +40,11 @@ public:
 
     void castle(pair<int,int> currCoord, pair<int,int> nextCoord);
 
-    void move(pair<int,int> currCoord, pair<int,int> nextCoord);
+    bool move(pair<int,int> currCoord, pair<int,int> nextCoord);
 
     void endRound();
 
     void testGen(int x, int y);
+
+    bool stillThreat(Player currTurn);
 };

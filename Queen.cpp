@@ -12,16 +12,20 @@ PieceType Queen::whichType() { return QUEEN; }
 
 vector<pair<int,int>> Queen::genMoves(vector<vector<Piece*>>& t) {
     vector<pair<int,int>> moves;
+    Player pieceColor = whichColor();
 
     for(int i = 0; i < 8; i++) {
         for(int j = 0; j < 8; j++) {
-            if(i + j == currX + currY and i - currX == j - currY) moves.push_back({i, j});
+            if((i + j) == (currX + currY) or (i - currX) == (j - currY)) {
+                if(t[i][j] != nullptr and t[i][j]->whichColor() == pieceColor) continue;
+                moves.push_back({i, j});
+            }
         }
     }
 
     for(int k = 0; k < 8; k++) {
-        moves.push_back({currX, k});
-        moves.push_back({k, currY});
+        if(t[currX][k] == nullptr or t[currX][k]->whichColor() != pieceColor) moves.push_back({currX, k});
+        if(t[k][currY] == nullptr or t[k][currY]->whichColor() != pieceColor) moves.push_back({k, currY});
     }
 
     return moves;

@@ -1,7 +1,12 @@
 #pragma once
-
-#include<bits/stdc++.h>
+#include<vector>
+#include<unordered_map>
+#include<queue>
+#include<utility>
+#include<iostream>
 #include"Enums.hpp"
+#include<stack>
+
 using namespace std;
 
 class Piece {

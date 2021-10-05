@@ -27,6 +27,7 @@ vector<pair<int,int>> King::genMoves(vector<vector<Piece*>>& t) {
     vector<int> dx = {0,  0,  1, 1,  1, -1, -1, -1};
     vector<int> dy = {1, -1,  0, 1, -1,  0,  1, -1};
     vector<pair<int,int>> moves;
+    Player pieceColor = whichColor();
 
     for(int idx = 0; idx < dx.size(); idx++) {
         int nextX = currX + dx[idx];
@@ -34,7 +35,8 @@ vector<pair<int,int>> King::genMoves(vector<vector<Piece*>>& t) {
 
         if(nextX < 0 || nextX >= 8) continue;
         if(nextY < 0 || nextY >= 8) continue;
-        
+        if(t[nextX][nextY] != nullptr and t[nextX][nextY]->whichColor() == pieceColor) continue;
+
         moves.push_back({nextX, nextY});
     }
 
