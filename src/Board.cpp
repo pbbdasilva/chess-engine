@@ -26,6 +26,7 @@ void Board::fenParser(string FEN) {
     int piecesIdx = FEN.find(' ');
 
     string pieceString = FEN.substr(0, piecesIdx);
+    initFEN = pieceString;
     string turnString = FEN.substr(piecesIdx + 1, 1);
 
     buildBoard(pieceString);
@@ -304,6 +305,27 @@ void Board::castle(pair<int,int> currCoord, pair<int,int> nextCoord) {
 
 }
 
+string Board::serialize() {
+    string serial = "";
+
+    for(int row = 7; row >= 0; row--) {
+        int countNull = 0;
+        for(int col = 0; col < 8; col++) {
+            if(t[row][col] != nullptr) {
+                if(countNull > 0) serial += to_string(countNull);
+                countNull = 0;
+                if(t[row][col]->whichColor() == Player::WHITE) {
+                    serial += pieceReprWhite[t[row][col]->whichType()];
+                } else serial += pieceReprBlack[t[row][col]->whichType()];
+            } else countNull++;
+        }
+        if(countNull > 0) serial += to_string(countNull);
+        serial += '/';
+    }
+
+    serial.pop_back();
+    return serial;
+}
 
 void Board::endRound() {
     auto [x, y, pastRound] = enPassantPieces.front();

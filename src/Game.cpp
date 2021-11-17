@@ -6,6 +6,8 @@ Game::Game() { b.fenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -
 Game::Game(string FEN) { b.fenParser(FEN); }
 
 
+void Game::testFeature() { assert(b.initFEN == b.serialize()); }
+
 void Game::run() {
     initialRender();
 
