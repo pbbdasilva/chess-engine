@@ -41,4 +41,6 @@ public:
     void endRound();
 
     void testGen(int x, int y);
+
+    friend class AI;
 };
