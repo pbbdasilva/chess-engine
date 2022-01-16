@@ -19,6 +19,7 @@ class Board {
     Player turn = Player::WHITE;
 
 public:
+    std::string initFEN;
     Board();
 
     void fenParser(const std::string s);
@@ -35,8 +36,11 @@ public:
     bool clearPath(std::pair<int,int> currCoord, std::pair<int,int> nextCoord);
     void movePiece(std::pair<int,int> currCoord, std::pair<int,int> nextCoord);
     void castle(std::pair<int,int> currCoord, std::pair<int,int> nextCoord);
+    std::string serialize();
 
     void endRound();
 
     void testGen(int x, int y);
+
+    friend class AI;
 };

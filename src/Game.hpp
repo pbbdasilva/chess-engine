@@ -10,6 +10,8 @@ public:
     Game();
     Game(std::string FEN);
 
+    void testFeature();
+
     void run();
     void processInput();
     void play();
