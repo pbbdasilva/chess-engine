@@ -17,7 +17,7 @@ class AI {
 
 public:
     AI(Player _color);
-    int getEval(Board& b);
+    int getEval(Board& b, Player& turn);
     void processMove(Board& b, Move move);
     void unprocessMove(Board& b, Move move);
     std::vector<Move> getPossibleMoves(Board& b, Player turn);

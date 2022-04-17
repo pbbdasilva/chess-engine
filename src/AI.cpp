@@ -4,7 +4,11 @@ using namespace std;
 AI::AI(Player _color) : color(_color) {}
 int AI::getEval(Board& b) {
     string boardSerial = b.serialize();
-    if(storedEvals.find(boardSerial) != storedEvals.end()) return storedEvals[boardSerial];
+    if(storedEvals.find(boardSerial) != storedEvals.end()) {
+        int val = storedEvals[boardSerial];
+        if(turn == WHITE) return val;
+        return -val;
+    }
     return 0;
 }
 
