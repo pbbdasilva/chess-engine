@@ -2,7 +2,45 @@
 using namespace std;
 
 AI::AI(Player _color) : color(_color) {}
-int AI::getEval(Board& b) {
+
+float AI::materialScoreHelper(int x, int y, Board& b) {
+    switch (b.t[x][y]->whichType())
+    {
+    case PieceType::PAWN:
+        return 1;
+    case PieceType::KNIGHT:
+        return 2.7;
+    case PieceType::BISHOP:
+        return 2.9;
+    case PieceType::ROOK:
+        return 4.3;
+    case PieceType::QUEEN:
+        return 8.9;
+    case PieceType::KING:
+        return AI::INF;
+    default:
+        return 0;
+    }
+}
+
+float AI::materialScore(Board& b) {
+    float sum = 0;
+    for(int i = 0; i < b.t.size(); i++) {
+        for(int j = 0; j < b.t[0].size(); j++) {
+            auto val = materialScoreHelper(i, j, b);
+            if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
+            sum += val;
+        }
+    }
+    
+    return sum;
+}
+
+float AI::pieceEvaluation(Board& b) {
+    
+}
+
+float AI::getEval(Board& b, Player& turn) {
     string boardSerial = b.serialize();
     if(storedEvals.find(boardSerial) != storedEvals.end()) {
         int val = storedEvals[boardSerial];
