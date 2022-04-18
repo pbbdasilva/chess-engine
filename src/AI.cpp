@@ -46,13 +46,71 @@ float AI::positionalScore(int x, int y, Board& b, Player turn) {
     }
 }
 
+float AI::checkDoublePawn(int x, int y, Board& b, Player turn) {
+    bool countDoublePawns = 0;
+    if(x >= 1) {
+        auto piece = b.t[x-1][y];
+        if(piece->whichColor() == turn and piece->whichType() == PieceType::PAWN) 
+            countDoublePawns++;
+    }
+    
+    if(x <= 6) {
+        auto piece = b.t[x+1][y];
+        if(piece->whichColor() == turn and piece->whichType() == PieceType::PAWN) 
+            countDoublePawns++;
+    }
+    
+    if(countDoublePawns > 0) return -AI::doublePawnsPenalty * (countDoublePawns + 1);
+    return 0;
+}
+
+float AI::checkIsolatedPawn(int x, int y, Board& b, Player turn) {
+    bool countIsolatedPawns = 0;
+    if(x >= 1) {
+        if(y < 7) {
+            auto piece = b.t[x-1][y+1];
+            if(piece->whichColor() != turn or piece->whichType() != PieceType::PAWN) 
+                countIsolatedPawns++;
+        }
+        
+        if(y > 0) {
+            auto piece = b.t[x-1][y-1];
+            if(piece->whichColor() != turn or piece->whichType() != PieceType::PAWN) 
+                countIsolatedPawns++;
+        }
+    }
+    
+    if(x <= 6) {
+        if(y < 7) {
+            auto piece = b.t[x+1][y+1];
+            if(piece->whichColor() != turn or piece->whichType() != PieceType::PAWN) 
+                countIsolatedPawns++;
+        }
+        
+        if(y > 0) {
+            auto piece = b.t[x+1][y-1];
+            if(piece->whichColor() != turn or piece->whichType() != PieceType::PAWN) 
+                countIsolatedPawns++;
+        }
+    }
+    
+    if(countIsolatedPawns > 0) return -AI::isolatedPawnsPenalty * (countIsolatedPawns + 1);
+    return 0;
+}
+
 float AI::pieceEvaluation(Board& b, Player turn) {
     float sum = 0;
     for(int i = 0; i < b.t.size(); i++) {
         for(int j = 0; j < b.t[0].size(); j++) {
             float val = 0;
-            auto valMaterial = materialScore(i, j, b, turn);
-            auto valPosition = positionalScore(i, j, b, turn);
+            val += materialScore(i, j, b, turn);
+            val += positionalScore(i, j, b, turn);
+            
+            if(b.t[i][j]->whichType() == PieceType::PAWN) {
+                val -= AI::checkDoublePawn(i, j, b, turn);
+                val -= AI::checkIsolatedPawn(i, j, b, turn);
+            }
+            
             if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
             sum += val;
         }
@@ -68,7 +126,7 @@ float AI::getEval(Board& b, Player& turn) {
         if(turn == WHITE) return val;
         return -val;
     }
-    return 0;
+    return storedEvals[boardSerial] = pieceEvaluation(b, turn);
 }
 
 void AI::processMove(Board& b, Move move) {

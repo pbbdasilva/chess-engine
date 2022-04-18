@@ -110,4 +110,6 @@ public:
     float mobilityScore(Board& b, Player turn);
     float safeKingScore(Board& b, Player turn);
     float positionalScore(int x, int y, Board& b, Player turn);
+    float checkDoublePawn(int x, int y, Board& b, Player turn);
+    float checkIsolatedPawn(int x, int y, Board& b, Player turn);
 };
