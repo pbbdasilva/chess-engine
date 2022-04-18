@@ -46,3 +46,5 @@ vector<pair<int,int>> Knight::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int Knight::mobilityMultiplier() { return 1; }

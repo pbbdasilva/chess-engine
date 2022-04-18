@@ -47,3 +47,5 @@ vector<pair<int,int>> King::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int King::mobilityMultiplier() { return 1; }

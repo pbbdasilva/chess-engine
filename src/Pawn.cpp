@@ -71,3 +71,5 @@ vector<pair<int,int>> Pawn::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int Pawn::mobilityMultiplier() { return 1; }
