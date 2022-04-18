@@ -65,7 +65,7 @@ float AI::checkDoublePawn(int x, int y, Board& b, Player turn) {
 }
 
 float AI::checkIsolatedPawn(int x, int y, Board& b, Player turn) {
-    bool countIsolatedPawns = 0;
+    int countIsolatedPawns = 0;
     if(x >= 1) {
         if(y < 7) {
             auto piece = b.t[x-1][y+1];
@@ -98,21 +98,68 @@ float AI::checkIsolatedPawn(int x, int y, Board& b, Player turn) {
     return 0;
 }
 
-float AI::pieceEvaluation(Board& b, Player turn) {
-    float sum = 0;
-    for(int i = 0; i < b.t.size(); i++) {
-        for(int j = 0; j < b.t[0].size(); j++) {
-            float val = 0;
-            val += materialScore(i, j, b, turn);
-            val += positionalScore(i, j, b, turn);
+float AI::mobilityScore(int x, int y, Board& b, Player turn, const vector<vector<int>>& freeSquares) {
+    int count = 0;
+    
+    for(auto& [nxtX, nxtY] : b.t[x][y]->genMoves(b.t)) {
+        if(freeSquares[nxtX][nxtY] != -1 and b.t[nxtX][nxtY]->whichType() == PieceType::NONE) {
+            count++;
+        }
+    }
+    
+    return b.t[x][y]->mobilityMultiplier() * count; 
+}
+
+vector<vector<int>> AI::precomputeFreeSpaces(Board& b, Player turn) {
+    Player enemyTurn = !turn;
+    vector<vector<int>> attackedSquares(8, vector<int>(8, 0));
+    
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            if(b.t[i][j]->whichColor() == turn) continue;
             
-            if(b.t[i][j]->whichType() == PieceType::PAWN) {
-                val -= AI::checkDoublePawn(i, j, b, turn);
-                val -= AI::checkIsolatedPawn(i, j, b, turn);
+            for(auto& [x, y] : b.t[i][j]->genMoves(b.t)) {
+                attackedSquares[x][y] = -1;
             }
-            
-            if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
-            sum += val;
+        }
+    }
+    
+    return attackedSquares;
+}
+
+float AI::pieceEvaluation(Board& b, Player turn) {
+    auto freeSquares = precomputeFreeSpaces(b, turn);
+    float sum = 0;
+    
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            if(b.t[i][j]->whichColor() == turn) {
+                float val = 0;
+                auto pieceType = b.t[i][j]->whichType();
+                
+                val += materialScore(i, j, b, turn);
+                val += positionalScore(i, j, b, turn);
+                
+                if(pieceType == PieceType::PAWN) {
+                    val -= AI::checkDoublePawn(i, j, b, turn);
+                    val -= AI::checkIsolatedPawn(i, j, b, turn);
+                }
+                
+                bool movedPawn = (pieceType == PieceType::PAWN and 
+                                 (turn == Player::WHITE and i > 1) or 
+                                 (turn == Player::BLACK and i < 6));
+                
+                bool movedPiece = (pieceType != PieceType::PAWN and 
+                                  (turn == Player::WHITE and i > 0) or
+                                  (turn == Player::BLACK and i < 7));
+                
+                if(movedPawn or movedPiece)
+                    val += mobilityScore(i, j, b, turn, freeSquares);
+                
+                if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
+                
+                sum += val;   
+            }
         }
     }
     
@@ -123,7 +170,7 @@ float AI::getEval(Board& b, Player& turn) {
     string boardSerial = b.serialize();
     if(storedEvals.find(boardSerial) != storedEvals.end()) {
         int val = storedEvals[boardSerial];
-        if(turn == WHITE) return val;
+        if(turn == Player::WHITE) return val;
         return -val;
     }
     return storedEvals[boardSerial] = pieceEvaluation(b, turn);
@@ -172,7 +219,7 @@ Move AI::miniMax(Board& b, Player turn, bool maxTurn) {
     Move move;
 
     if(maxTurn) {
-        eval = -INF;
+        eval = -AI::INF;
         
         for(int i = 0; i < min(MAX_LAYER, (int) nextMoves.size()); i++) {
             processMove(b, nextMoves[i]);
@@ -184,7 +231,7 @@ Move AI::miniMax(Board& b, Player turn, bool maxTurn) {
             }
         }
     } else {
-        eval = INF;
+        eval = AI::INF;
 
         for(int i = 0; i < min(MAX_LAYER, (int) nextMoves.size()); i++) {
             processMove(b, nextMoves[i]);
@@ -208,7 +255,7 @@ float AI::processMiniMax(Board& b, int steps, Player turn, bool maxTurn) {
     Move move;
 
     if(maxTurn) {
-        eval = -INF;
+        eval = -AI::INF;
         
         for(int i = 0; i < min(MAX_LAYER, (int) nextMoves.size()); i++) {
             processMove(b, nextMoves[i]);
@@ -220,7 +267,7 @@ float AI::processMiniMax(Board& b, int steps, Player turn, bool maxTurn) {
             }
         }
     } else {
-        eval = INF;
+        eval = AI::INF;
 
         for(int i = 0; i < min(MAX_LAYER, (int) nextMoves.size()); i++) {
             processMove(b, nextMoves[i]);
