@@ -7,15 +7,15 @@ float AI::materialScore(int x, int y, Board& b, Player turn) {
     switch (b.t[x][y]->whichType())
     {
     case PieceType::PAWN:
-        return 1;
+        return 100;
     case PieceType::KNIGHT:
-        return 2.7;
+        return 270;
     case PieceType::BISHOP:
-        return 2.9;
+        return 290;
     case PieceType::ROOK:
-        return 4.3;
+        return 430;
     case PieceType::QUEEN:
-        return 8.9;
+        return 890;
     case PieceType::KING:
         return AI::INF;
     default:
