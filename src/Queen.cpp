@@ -36,3 +36,5 @@ vector<pair<int,int>> Queen::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int Queen::mobilityMultiplier() { return 1; }

@@ -107,9 +107,10 @@ public:
     float processMiniMax(Board& b, int steps, Player turn, bool maxTurn);
     float pieceEvaluation(Board& b, Player turn);
     float materialScore(int x, int y, Board& b, Player turn);
-    float mobilityScore(Board& b, Player turn);
+    float mobilityScore(int x, int y, Board& b, Player turn, const std::vector<std::vector<int>>& freeSquares);
     float safeKingScore(Board& b, Player turn);
     float positionalScore(int x, int y, Board& b, Player turn);
     float checkDoublePawn(int x, int y, Board& b, Player turn);
     float checkIsolatedPawn(int x, int y, Board& b, Player turn);
+    std::vector<std::vector<int>> precomputeFreeSpaces(Board& b, Player turn);
 };

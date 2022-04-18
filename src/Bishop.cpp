@@ -32,3 +32,5 @@ vector<pair<int,int>> Bishop::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int Bishop::mobilityMultiplier() { return 1; }

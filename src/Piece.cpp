@@ -46,3 +46,5 @@ bool Piece::validMove(int i, int j, MoveType type, Player turn) {
 }
 
 vector<pair<int,int>> Piece::genMoves(const vector<vector<Piece*>>& t) { return {{}}; }
+
+int Piece::mobilityMultiplier() { return 1; }

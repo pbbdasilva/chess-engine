@@ -28,3 +28,5 @@ vector<pair<int,int>> Rook::genMoves(const vector<vector<Piece*>>& t) {
 
     return moves;
 }
+
+int Rook::mobilityMultiplier() { return 1; }
