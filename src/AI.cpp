@@ -47,7 +47,7 @@ float AI::positionalScore(int x, int y, Board& b, Player turn) {
 }
 
 float AI::checkDoublePawn(int x, int y, Board& b, Player turn) {
-    bool countDoublePawns = 0;
+    int countDoublePawns = 0;
     if(x >= 1) {
         auto piece = b.t[x-1][y];
         if(piece->whichColor() == turn and piece->whichType() == PieceType::PAWN) 
