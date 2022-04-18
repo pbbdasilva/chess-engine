@@ -200,7 +200,7 @@ Move AI::miniMax(Board& b, Player turn, bool maxTurn) {
     return move;
 }
 
-int AI::processMiniMax(Board& b, int steps, Player turn, bool maxTurn) {
+float AI::processMiniMax(Board& b, int steps, Player turn, bool maxTurn) {
     vector<Move> nextMoves = getPossibleMoves(b, turn);
 
     shuffle(nextMoves.begin(), nextMoves.end(), RNG);
