@@ -3,7 +3,7 @@ using namespace std;
 
 AI::AI(Player _color) : color(_color) {}
 
-float AI::materialScoreHelper(int x, int y, Board& b) {
+float AI::materialScoreHelper(int x, int y, Board& b, Player turn) {
     switch (b.t[x][y]->whichType())
     {
     case PieceType::PAWN:
@@ -23,11 +23,36 @@ float AI::materialScoreHelper(int x, int y, Board& b) {
     }
 }
 
-float AI::materialScore(Board& b) {
+float AI::positionalScore(int x, int y, Board& b, Player turn) {
+    switch (b.t[x][y]->whichType())
+    {
+    case PieceType::PAWN:
+        if(b.t[x][y]->whichColor() == Player::WHITE) return AI::pawn_score[x * 8 + y];
+        return AI::pawn_score[mirror_score[x * 8 + y]];
+    case PieceType::KNIGHT:
+        if(b.t[x][y]->whichColor() == Player::WHITE) return AI::knight_score[x * 8 + y];
+        return AI::knight_score[mirror_score[x * 8 + y]];
+    case PieceType::BISHOP:
+        if(b.t[x][y]->whichColor() == Player::WHITE) return AI::bishop_score[x * 8 + y];
+        return AI::bishop_score[mirror_score[x * 8 + y]];
+    case PieceType::ROOK:
+        if(b.t[x][y]->whichColor() == Player::WHITE) return AI::rook_score[x * 8 + y];
+        return AI::rook_score[mirror_score[x * 8 + y]];
+    case PieceType::KING:
+        if(b.t[x][y]->whichColor() == Player::WHITE) return AI::king_score[x * 8 + y];
+        return AI::pawn_score[mirror_score[x * 8 + y]];
+    default:
+        return 0;
+    }
+}
+
+float AI::materialScore(Board& b, Player turn) {
     float sum = 0;
     for(int i = 0; i < b.t.size(); i++) {
         for(int j = 0; j < b.t[0].size(); j++) {
-            auto val = materialScoreHelper(i, j, b);
+            float val = 0;
+            auto valMaterial = materialScoreHelper(i, j, b);
+            auto valPosition = positionalScore(i, j, b, turn);
             if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
             sum += val;
         }
@@ -36,7 +61,7 @@ float AI::materialScore(Board& b) {
     return sum;
 }
 
-float AI::pieceEvaluation(Board& b) {
+float AI::pieceEvaluation(Board& b, Player turn) {
     
 }
 
