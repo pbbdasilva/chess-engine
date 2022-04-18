@@ -16,6 +16,7 @@ class AI {
     std::default_random_engine RNG;
     float INF = 1e9;
     int doublePawnsPenalty = 10;
+    int isolatedPawnsPenalty = 10;
     
     enum {
         a8, b8, c8, d8, e8, f8, g8, h8,
@@ -105,8 +106,7 @@ public:
     Move miniMax(Board& b, Player turn, bool maxTurn);
     float processMiniMax(Board& b, int steps, Player turn, bool maxTurn);
     float pieceEvaluation(Board& b, Player turn);
-    float materialScore(Board& b, Player turn);
-    float materialScoreHelper(int x, int y, Board& b, Player turn);
+    float materialScore(int x, int y, Board& b, Player turn);
     float mobilityScore(Board& b, Player turn);
     float safeKingScore(Board& b, Player turn);
     float positionalScore(int x, int y, Board& b, Player turn);

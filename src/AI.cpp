@@ -3,7 +3,7 @@ using namespace std;
 
 AI::AI(Player _color) : color(_color) {}
 
-float AI::materialScoreHelper(int x, int y, Board& b, Player turn) {
+float AI::materialScore(int x, int y, Board& b, Player turn) {
     switch (b.t[x][y]->whichType())
     {
     case PieceType::PAWN:
@@ -46,12 +46,12 @@ float AI::positionalScore(int x, int y, Board& b, Player turn) {
     }
 }
 
-float AI::materialScore(Board& b, Player turn) {
+float AI::pieceEvaluation(Board& b, Player turn) {
     float sum = 0;
     for(int i = 0; i < b.t.size(); i++) {
         for(int j = 0; j < b.t[0].size(); j++) {
             float val = 0;
-            auto valMaterial = materialScoreHelper(i, j, b);
+            auto valMaterial = materialScore(i, j, b, turn);
             auto valPosition = positionalScore(i, j, b, turn);
             if(b.t[i][j]->whichColor() == Player::BLACK) val = -val;
             sum += val;
@@ -59,10 +59,6 @@ float AI::materialScore(Board& b, Player turn) {
     }
     
     return sum;
-}
-
-float AI::pieceEvaluation(Board& b, Player turn) {
-    
 }
 
 float AI::getEval(Board& b, Player& turn) {
