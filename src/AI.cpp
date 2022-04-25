@@ -48,16 +48,11 @@ float AI::positionalScore(int x, int y, Board& b, Player turn) {
 
 float AI::checkDoublePawn(int x, int y, Board& b, Player turn) {
     int countDoublePawns = 0;
-    if(x >= 1) {
-        auto piece = b.t[x-1][y];
-        if(piece->whichColor() == turn and piece->whichType() == PieceType::PAWN) 
+    for(int row = 0; row < b.t.size(); row++) {
+        auto piece = b.t[row][y];
+        if(piece->whichType() == PieceType::PAWN and piece->whichColor() == turn) {
             countDoublePawns++;
-    }
-    
-    if(x <= 6) {
-        auto piece = b.t[x+1][y];
-        if(piece->whichColor() == turn and piece->whichType() == PieceType::PAWN) 
-            countDoublePawns++;
+        }
     }
     
     if(countDoublePawns > 0) return -AI::doublePawnsPenalty * (countDoublePawns + 1);
