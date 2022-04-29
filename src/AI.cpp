@@ -1,6 +1,8 @@
 #include "AI.hpp"
 using namespace std;
 
+AI::AI() : color(Player::BLACK) {}
+
 AI::AI(Player _color) : color(_color) {}
 
 float AI::materialScore(int x, int y, Board& b, Player turn) {
@@ -277,3 +279,5 @@ float AI::processMiniMax(Board& b, int steps, Player turn, bool maxTurn) {
 
     return eval;
 }
+
+Player AI::getColor() { return AI::color; }

@@ -98,6 +98,7 @@ class AI {
 
 
 public:
+    AI();
     AI(Player _color);
     float getEval(Board& b, Player& turn);
     void processMove(Board& b, Move move);
@@ -113,4 +114,5 @@ public:
     float checkDoublePawn(int x, int y, Board& b, Player turn);
     float checkIsolatedPawn(int x, int y, Board& b, Player turn);
     std::vector<std::vector<int>> precomputeFreeSpaces(Board& b, Player turn);
+    Player getColor();
 };

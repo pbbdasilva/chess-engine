@@ -1,7 +1,7 @@
 #include "Game.hpp"
 using namespace std;
 
-Game::Game() { b.fenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); }
+Game::Game() : ai() { b.fenParser("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); }
 
 Game::Game(string FEN) { b.fenParser(FEN); }
 
@@ -19,15 +19,21 @@ void Game::run() {
 }
 
 void Game::processInput() {
-    int currX, currY, nextX, nextY;
-    cout << "Curr Position: ";
-    cin >> currX >> currY;
-    cout << "New Position: ";
-    cin >> nextX >> nextY;
-    cout << endl;
+    if(turn[turnIdx] == PlayerType::HUMANPLAYER) {
+        int currX, currY, nextX, nextY;
+        cout << "Curr Position: ";
+        cin >> currX >> currY;
+        cout << "New Position: ";
+        cin >> nextX >> nextY;
+        cout << endl;
 
-    currCoord = {currX - 1, currY - 1};
-    nextCoord = {nextX - 1, nextY - 1};
+        currCoord = {currX - 1, currY - 1};
+        nextCoord = {nextX - 1, nextY - 1};
+    } else {
+        auto chosenMove = ai.miniMax(b, ai.getColor(), ai.getColor() == Player::WHITE);
+        currCoord = chosenMove.currPos;
+        nextCoord = chosenMove.nxtPos;
+    }
 }
 
 void Game::play() { validMove = b.move(currCoord, nextCoord); }
